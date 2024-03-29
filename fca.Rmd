@@ -1,0 +1,102 @@
+---
+title: "STA475- FCA"
+author: "Tanya Thaker"
+date: "2024-03-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction [100 - 200 words]
+Identify the statistical method you will be exploring in your simulation study (this can be a method we studied in class, for example the K-M method, a parametric model, or Cox PH model) and a question that you want to investigate in your simulation study. 
+
+
+## Data generation: 
+Explain how you will simulate relevant data (looking at different censoring schemes, censoring rates, and/or distributions for example). This section can be mostly code, although you should still explain how you’re simulating your data, for example how you’re simulating the response times T and how you’re inducing right censoring.
+```{r}
+# Dataset 1
+set.seed(123) # For reproducibility
+
+
+simulate_data <- function(n, success_rate, treatment) {
+  
+  relapse <- rbinom(n, 1, success_rate / 100) #relapse = 0: they relapsed
+  time <- ifelse(relapse != 0, 6, runif(n, min = 0, max = 6))
+  #status <- ifelse(time < 6, 0, 1) 
+  data.frame(Treatment = treatment, Time = time, Relapse = relapse)
+}
+
+n <- 100
+
+rates <- c(CBT = 51, CBT_MET = 81, Peer_Support = 86)
+
+cbt_data <- simulate_data(n, rates['CBT'], 'CBT')
+cbt_met_data <- simulate_data(n, rates['CBT_MET'], 'CBT+MET')
+peer_support_data <- simulate_data(n, rates['Peer_Support'], 'Peer Support')
+
+data_1 <- rbind(cbt_data, cbt_met_data, peer_support_data)
+data_1 <- final_data %>% mutate(Relapse = ifelse(Relapse == 1, 0, 1))
+
+
+#Dataset 2
+set.seed(31) # For reproducibility
+
+
+simulate_data <- function(n, success_rate, treatment) {
+  
+  relapse <- rbinom(n, 1, success_rate / 100) #relapse = 0: they relapsed
+  time <- ifelse(relapse != 0, 6, runif(n, min = 0, max = 6))
+  #status <- ifelse(time < 6, 0, 1) 
+  data.frame(Treatment = treatment, Time = time, Relapse = relapse)
+}
+
+n <- 100
+
+rates <- c(CBT = 51, CBT_MET = 81, Peer_Support = 86)
+
+cbt_data <- simulate_data(n, rates['CBT'], 'CBT')
+cbt_met_data <- simulate_data(n, rates['CBT_MET'], 'CBT+MET')
+peer_support_data <- simulate_data(n, rates['Peer_Support'], 'Peer Support')
+
+data_2 <- rbind(cbt_data, cbt_met_data, peer_support_data)
+data_2 <- final_data %>% mutate(Relapse = ifelse(Relapse == 1, 0, 1))
+
+#Dataset 2
+set.seed(234) # For reproducibility
+
+
+simulate_data <- function(n, success_rate, treatment) {
+  
+  relapse <- rbinom(n, 1, success_rate / 100) #relapse = 0: they relapsed
+  time <- ifelse(relapse != 0, 6, runif(n, min = 0, max = 6))
+  #status <- ifelse(time < 6, 0, 1) 
+  data.frame(Treatment = treatment, Time = time, Relapse = relapse)
+}
+
+n <- 100
+
+rates <- c(CBT = 51, CBT_MET = 81, Peer_Support = 86)
+
+cbt_data <- simulate_data(n, rates['CBT'], 'CBT')
+cbt_met_data <- simulate_data(n, rates['CBT_MET'], 'CBT+MET')
+peer_support_data <- simulate_data(n, rates['Peer_Support'], 'Peer Support')
+
+data_3 <- rbind(cbt_data, cbt_met_data, peer_support_data)
+data_3 <- final_data %>% mutate(Relapse = ifelse(Relapse == 1, 0, 1))
+
+
+```
+
+
+## Simulation
+
+Apply your chosen method to different simulated datasets and compare the estimates you obtain with the true values. You can report things like the bias, variance, coverage probability (based on 95% confidence intervals) etc. This section can be mostly code, but it should be clearly commented
+
+
+## Discussion [300 words]
+Comment on the results you obtained – do they make sense, are they surprising? If they are surprising what did you do to check that you didn’t make a mistake (sometimes, when you get surprising results, for example observing that the variance increases as the sample size increases, it’s because you made a mistake!)
+
+
+## References
