@@ -7,10 +7,16 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(dplyr)
 ```
 
 ## Introduction [100 - 200 words]
 Identify the statistical method you will be exploring in your simulation study (this can be a method we studied in class, for example the K-M method, a parametric model, or Cox PH model) and a question that you want to investigate in your simulation study. 
+
+
+
+
 
 
 ## Data generation: 
@@ -37,7 +43,7 @@ cbt_met_data <- simulate_data(n, rates['CBT_MET'], 'CBT+MET')
 peer_support_data <- simulate_data(n, rates['Peer_Support'], 'Peer Support')
 
 data_1 <- rbind(cbt_data, cbt_met_data, peer_support_data)
-data_1 <- final_data %>% mutate(Relapse = ifelse(Relapse == 1, 0, 1))
+data_1 <- data_1 %>% mutate(Relapse = ifelse(Relapse == 1, 0, 1))
 
 
 #Dataset 2
@@ -86,6 +92,33 @@ peer_support_data <- simulate_data(n, rates['Peer_Support'], 'Peer Support')
 data_3 <- rbind(cbt_data, cbt_met_data, peer_support_data)
 data_3 <- final_data %>% mutate(Relapse = ifelse(Relapse == 1, 0, 1))
 
+
+```
+
+
+```{r}
+library(survival)
+
+fit.weib4 <- survreg( Surv(Time, Relapse) ~ 1 , data=data_1, 
+                      dist="weibull")
+
+fit.log4 <- survreg( Surv(Time, Relapse) ~ 1 , data=data_1, 
+                     dist="lognormal")
+
+fit.logl <- survreg( Surv(Time, Relapse) ~ 1 , data=data_1, 
+                     dist="loglogistic")
+
+
+km_fit <- survfit(Surv(Time, Relapse) ~ 1, data = data_1)
+
+data <- tibble(time=rep(km_fit$time, 3), surv=rep(km_fit$surv, 3), 
+               psi_inverse_surv = c(log(-log(km_fit$surv)), 
+                                    qnorm(1-km_fit$surv), log((1-km_fit$surv)/km_fit$surv)), model = 
+                 rep(c("weibull", "lognormal", "loglogistic"), each=length(km_fit$time)))
+
+data %>% ggplot(aes(x=log(time), y= psi_inverse_surv, color=model, 
+                    group=model)) + geom_point() + 
+  geom_smooth(formula = y ~ x, method = "lm") + facet_grid(~model)
 
 ```
 
