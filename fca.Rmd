@@ -67,9 +67,9 @@ cbt_met_data <- simulate_data(n, rates['CBT_MET'], 'CBT+MET')
 peer_support_data <- simulate_data(n, rates['Peer_Support'], 'Peer Support')
 
 data_2 <- rbind(cbt_data, cbt_met_data, peer_support_data)
-data_2 <- final_data %>% mutate(Relapse = ifelse(Relapse == 1, 0, 1))
+data_2 <- data_2 %>% mutate(Relapse = ifelse(Relapse == 1, 0, 1))
 
-#Dataset 2
+#Dataset 3
 set.seed(234) # For reproducibility
 
 
@@ -90,26 +90,27 @@ cbt_met_data <- simulate_data(n, rates['CBT_MET'], 'CBT+MET')
 peer_support_data <- simulate_data(n, rates['Peer_Support'], 'Peer Support')
 
 data_3 <- rbind(cbt_data, cbt_met_data, peer_support_data)
-data_3 <- final_data %>% mutate(Relapse = ifelse(Relapse == 1, 0, 1))
+data_3 <- data_3 %>% mutate(Relapse = ifelse(Relapse == 1, 0, 1))
 
-
+final_data <- rbind(data_1, data_2, data_3)
 ```
 
 
 ```{r}
+
 library(survival)
 
-fit.weib4 <- survreg( Surv(Time, Relapse) ~ 1 , data=data_1, 
+fit.weib4 <- survreg( Surv(Time, Relapse) ~ 1 , data=final_data, 
                       dist="weibull")
 
-fit.log4 <- survreg( Surv(Time, Relapse) ~ 1 , data=data_1, 
+fit.log4 <- survreg( Surv(Time, Relapse) ~ 1 , data=final_data, 
                      dist="lognormal")
 
-fit.logl <- survreg( Surv(Time, Relapse) ~ 1 , data=data_1, 
+fit.logl <- survreg( Surv(Time, Relapse) ~ 1 , data=final_data, 
                      dist="loglogistic")
 
 
-km_fit <- survfit(Surv(Time, Relapse) ~ 1, data = data_1)
+km_fit <- survfit(Surv(Time, Relapse) ~ 1, data = final_data)
 
 data <- tibble(time=rep(km_fit$time, 3), surv=rep(km_fit$surv, 3), 
                psi_inverse_surv = c(log(-log(km_fit$surv)), 
@@ -120,6 +121,21 @@ data %>% ggplot(aes(x=log(time), y= psi_inverse_surv, color=model,
                     group=model)) + geom_point() + 
   geom_smooth(formula = y ~ x, method = "lm") + facet_grid(~model)
 
+
+```
+
+```{r}
+d1 <- final_data %>% filter(Treatment =="CBT")
+d2 <- final_data %>% filter(Treatment =="CBT+MET")
+d3 <- final_data %>% filter(Treatment =="Peer Support")
+
+fit.log.1 <- survreg( Surv(Time, Relapse) ~ 1 , data=d1, dist="lognormal")
+fit.log.2 <- survreg( Surv(Time, Relapse) ~ 1 , data=d2, dist="lognormal")
+fit.log.3 <- survreg( Surv(Time, Relapse) ~ 1 , data=d3, dist="lognormal")
+
+summary(fit.log.1)
+summary(fit.log.2)
+summary(fit.log.3)
 ```
 
 
