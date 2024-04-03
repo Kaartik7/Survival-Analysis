@@ -12,7 +12,12 @@ library(dplyr)
 ```
 
 ## Introduction [100 - 200 words]
-Identify the statistical method you will be exploring in your simulation study (this can be a method we studied in class, for example the K-M method, a parametric model, or Cox PH model) and a question that you want to investigate in your simulation study. 
+In our simulation study, we focus on evaluating the efficacy of different treatment modalities for cannabis addiction. Specifically, we will explore the performance of the parametric survival model, particularly the -lognormal distribution, in analyzing time-to-event data. Our primary question revolves around comparing the effectiveness of behavioral therapy, combination therapy (such as Cognitive Behavioral Therapy combined with Motivational Enhancement Therapy), and peer support groups in achieving abstinence from cannabis use over a 6-month follow-up period.
+
+Existing studies provide insights into the effectiveness of these treatments: Cognitive Behavioral Therapy (CBT) alone leads to a 51% abstinence rate, CBT combined with Motivational Enhancement Therapy (MET) achieves an 81% abstinence rate, and peer support groups reach an 86% abstinence rate. We aim to simulate scenarios reflecting these treatment options and outcomes, defining the start time as the initiation of therapy and the end time as achieving 6 months of abstinence.
+
+Through our simulation, we aim to assess and compare the performance of statistical methods for analyzing time-to-event data, particularly in the context of evaluating treatment effectiveness for cannabis addiction.
+
 
 
 
@@ -20,7 +25,8 @@ Identify the statistical method you will be exploring in your simulation study (
 
 
 ## Data generation: 
-Explain how you will simulate relevant data (looking at different censoring schemes, censoring rates, and/or distributions for example). This section can be mostly code, although you should still explain how you’re simulating your data, for example how you’re simulating the response times T and how you’re inducing right censoring.
+The code simulates data for three treatment modalities (CBT, CBT+MET, Peer Support) based on their success rates in cannabis addiction treatment. Using a binomial distribution, it generates binary relapse outcomes and random durations within a 6-month follow-up period. The resulting datasets are combined into `data_1`, ensuring consistent coding for relapse. This approach allows for the simulation of treatment scenarios, facilitating further analysis of treatment effectiveness.
+
 ```{r}
 # Dataset 1
 set.seed(123) # For reproducibility
@@ -34,7 +40,7 @@ simulate_data <- function(n, success_rate, treatment) {
   data.frame(Treatment = treatment, Time = time, Relapse = relapse)
 }
 
-n <- 100
+n <- 500
 
 rates <- c(CBT = 51, CBT_MET = 81, Peer_Support = 86)
 
@@ -45,20 +51,19 @@ peer_support_data <- simulate_data(n, rates['Peer_Support'], 'Peer Support')
 data_1 <- rbind(cbt_data, cbt_met_data, peer_support_data)
 data_1 <- data_1 %>% mutate(Relapse = ifelse(Relapse == 1, 0, 1))
 
+num_to_censor <- round(nrow(data_1) * 0.10)
+censor_indices <- sample(1:nrow(data_1), num_to_censor)
+data_1$Censored <- 0
+data_1$Censored[censor_indices] <- 1
+
+# Update the selected rows to indicate they are censored (1)
+data_1$Censored[censor_indices] <- 1
+
 
 #Dataset 2
 set.seed(31) # For reproducibility
 
-
-simulate_data <- function(n, success_rate, treatment) {
-  
-  relapse <- rbinom(n, 1, success_rate / 100) #relapse = 0: they relapsed
-  time <- ifelse(relapse != 0, 6, runif(n, min = 0, max = 6))
-  #status <- ifelse(time < 6, 0, 1) 
-  data.frame(Treatment = treatment, Time = time, Relapse = relapse)
-}
-
-n <- 100
+n <- 500
 
 rates <- c(CBT = 51, CBT_MET = 81, Peer_Support = 86)
 
@@ -69,19 +74,15 @@ peer_support_data <- simulate_data(n, rates['Peer_Support'], 'Peer Support')
 data_2 <- rbind(cbt_data, cbt_met_data, peer_support_data)
 data_2 <- data_2 %>% mutate(Relapse = ifelse(Relapse == 1, 0, 1))
 
+num_to_censor <- round(nrow(data_1) * 0.30)
+censor_indices <- sample(1:nrow(data_1), num_to_censor)
+data_2$Censored <- 0
+data_2$Censored[censor_indices] <- 1
+
 #Dataset 3
 set.seed(234) # For reproducibility
 
-
-simulate_data <- function(n, success_rate, treatment) {
-  
-  relapse <- rbinom(n, 1, success_rate / 100) #relapse = 0: they relapsed
-  time <- ifelse(relapse != 0, 6, runif(n, min = 0, max = 6))
-  #status <- ifelse(time < 6, 0, 1) 
-  data.frame(Treatment = treatment, Time = time, Relapse = relapse)
-}
-
-n <- 100
+n <- 500
 
 rates <- c(CBT = 51, CBT_MET = 81, Peer_Support = 86)
 
@@ -92,25 +93,18 @@ peer_support_data <- simulate_data(n, rates['Peer_Support'], 'Peer Support')
 data_3 <- rbind(cbt_data, cbt_met_data, peer_support_data)
 data_3 <- data_3 %>% mutate(Relapse = ifelse(Relapse == 1, 0, 1))
 
-final_data <- rbind(data_1, data_2, data_3)
+num_to_censor <- round(nrow(data_1) * 0.60)
+censor_indices <- sample(1:nrow(data_1), num_to_censor)
+data_3$Censored <- 0
+data_3$Censored[censor_indices] <- 1
+
 ```
 
+## Simulation
 
 ```{r}
-
-library(survival)
-
-fit.weib4 <- survreg( Surv(Time, Relapse) ~ 1 , data=final_data, 
-                      dist="weibull")
-
-fit.log4 <- survreg( Surv(Time, Relapse) ~ 1 , data=final_data, 
-                     dist="lognormal")
-
-fit.logl <- survreg( Surv(Time, Relapse) ~ 1 , data=final_data, 
-                     dist="loglogistic")
-
-
-km_fit <- survfit(Surv(Time, Relapse) ~ 1, data = final_data)
+# Plot Kaplan-Meier curves
+km_fit <- survfit(Surv(Time, Relapse) ~ 1, data = data_1 %>% filter(Relapse == Censored))
 
 data <- tibble(time=rep(km_fit$time, 3), surv=rep(km_fit$surv, 3), 
                psi_inverse_surv = c(log(-log(km_fit$surv)), 
@@ -121,31 +115,92 @@ data %>% ggplot(aes(x=log(time), y= psi_inverse_surv, color=model,
                     group=model)) + geom_point() + 
   geom_smooth(formula = y ~ x, method = "lm") + facet_grid(~model)
 
+# Plot Kaplan-Meier curves
+km_fit <- survfit(Surv(Time, Relapse) ~ 1, data = data_2 %>% filter(Relapse == Censored))
 
+data <- tibble(time=rep(km_fit$time, 3), surv=rep(km_fit$surv, 3), 
+               psi_inverse_surv = c(log(-log(km_fit$surv)), 
+                                    qnorm(1-km_fit$surv), log((1-km_fit$surv)/km_fit$surv)), model = 
+                 rep(c("weibull", "lognormal", "loglogistic"), each=length(km_fit$time)))
+
+data %>% ggplot(aes(x=log(time), y= psi_inverse_surv, color=model, 
+                    group=model)) + geom_point() + 
+  geom_smooth(formula = y ~ x, method = "lm") + facet_grid(~model)
+
+# Plot Kaplan-Meier curves
+km_fit <- survfit(Surv(Time, Relapse) ~ 1, data = data_3 %>% filter(Relapse == Censored))
+
+data <- tibble(time=rep(km_fit$time, 3), surv=rep(km_fit$surv, 3), 
+               psi_inverse_surv = c(log(-log(km_fit$surv)), 
+                                    qnorm(1-km_fit$surv), log((1-km_fit$surv)/km_fit$surv)), model = 
+                 rep(c("weibull", "lognormal", "loglogistic"), each=length(km_fit$time)))
+
+data %>% ggplot(aes(x=log(time), y= psi_inverse_surv, color=model, 
+                    group=model)) + geom_point() + 
+  geom_smooth(formula = y ~ x, method = "lm") + facet_grid(~model)
 ```
+
+Based on the results obtained from fitting the Weibull, lognormal, and log-logistic 
+survival models to the data, from the transformed KM estimates, it can be
+observed that the lognormal model provides the best fit among the three, as its 
+graph is closest to a straight line.
+
 
 ```{r}
-d1 <- final_data %>% filter(Treatment =="CBT")
-d2 <- final_data %>% filter(Treatment =="CBT+MET")
-d3 <- final_data %>% filter(Treatment =="Peer Support")
+# Load necessary libraries
+library(survival)
+library(dplyr)
 
-fit.log.1 <- survreg( Surv(Time, Relapse) ~ 1 , data=d1, dist="lognormal")
-fit.log.2 <- survreg( Surv(Time, Relapse) ~ 1 , data=d2, dist="lognormal")
-fit.log.3 <- survreg( Surv(Time, Relapse) ~ 1 , data=d3, dist="lognormal")
+# Load necessary libraries
+library(survival)
+library(dplyr)
+# Function to fit model and calculate confidence intervals
+calculate_confidence_intervals <- function(data) {
+  # Fit the lognormal model
+  fit <- survreg(Surv(Time, Relapse) ~ Treatment, data = data, dist = "lognormal")
+  
+  # Calculate confidence intervals
+  confidence_intervals <- confint(fit)
+  
+  # Return confidence intervals
+  return(confidence_intervals)
+}
 
-summary(fit.log.1)
-summary(fit.log.2)
-summary(fit.log.3)
+# List of simulated datasets
+datasets <- list(data_1, data_2, data_3)
+
+# Apply model fitting and confidence interval calculation to each dataset
+confidence_intervals <- lapply(datasets, calculate_confidence_intervals)
+
+# Print confidence intervals
+for (i in 1:length(datasets)) {
+  cat("Confidence intervals for data_", i, ":\n")
+  print(confidence_intervals[[i]])
+  cat("\n")
+}
+
 ```
 
 
-## Simulation
-
-Apply your chosen method to different simulated datasets and compare the estimates you obtain with the true values. You can report things like the bias, variance, coverage probability (based on 95% confidence intervals) etc. This section can be mostly code, but it should be clearly commented
 
 
 ## Discussion [300 words]
 Comment on the results you obtained – do they make sense, are they surprising? If they are surprising what did you do to check that you didn’t make a mistake (sometimes, when you get surprising results, for example observing that the variance increases as the sample size increases, it’s because you made a mistake!)
+```{r}
+fit.log <- survreg( Surv(Time, Relapse) ~ Treatment , data=data_1 %>% filter(Relapse == Censored), dist="lognormal")
+summary(fit.log)
+
+fit.log <- survreg( Surv(Time, Relapse) ~ Treatment , data=data_2 %>% filter(Relapse == Censored), dist="lognormal")
+summary(fit.log)
+
+fit.log <- survreg( Surv(Time, Relapse) ~ Treatment , data=data_3 %>% filter(Relapse == Censored), dist="lognormal")
+summary(fit.log)
+```
 
 
 ## References
+
+Generative AI - ChatGPT - Paraphrase and articulate the text for introduction
+of our study on treatment of cannabis addiction.
+- Paraphrase and articulate the text for data generation
+of our study on treatment of cannabis addiction.
