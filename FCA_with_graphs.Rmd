@@ -12,19 +12,21 @@ library(dplyr)
 ```
 
 ## Introduction [100 - 200 words]
+Identify the statistical method you will be exploring in your simulation study (this can be a method we studied in class, for example the K-M method, a parametric model, or Cox PH model) and a question that you want to investigate in your simulation study. 
 
-In our simulation study, we focus on evaluating the efficacy of different treatment modalities for cannabis addiction and the confidence intervals of our predictions, based off different levels of censoring rates (10%, 30% and 60%). Specifically, we will explore the performance of the parametric survival model, particularly the -lognormal distribution, in analyzing time-to-event data. 
+In our simulation study, we focus on evaluating the efficacy of different treatment modalities for cannabis addiction and the confidence intervals of our predictions, based off the different age groups, that have different levels of censoring rates (Age 21-30: 10%, Age 31-40: 30%, Age 41-50: 60%), possible due to stronger addictions due to longer periods of consumption. Specifically, we will explore the performance of the parametric survival model, particularly the -lognormal distribution, in analyzing time-to-event data. 
 
 Existing studies provide insights into the effectiveness of these treatments: Cognitive Behavioral Therapy (CBT) alone leads to a 51% abstinence rate, CBT combined with Motivational Enhancement Therapy (MET) achieves an 81% abstinence rate, and peer support groups reach an 86% abstinence rate. We aim to simulate scenarios reflecting these treatment options and outcomes, defining the start time as the initiation of therapy and the end time as achieving 6 months of abstinence.
 
-Through our simulation, we aim to assess and compare the performance of statistical methods for analyzing time-to-event data, particularly in the context of evaluating treatment effectiveness for cannabis addict. We also aim to examine the effect of different levels of censoring on treatement outcomes.
+Through our simulation, we aim to assess and compare the performance of statistical methods for analyzing time-to-event data, particularly in the context of evaluating treatment effectiveness for cannabis addict
+
 
 
 ## Data generation: 
+ulate relevant data (looking at different censoring schemes, censoring rates, and/or distributions for example). This section can be mostly code, although you should still explain how you’re simulating your data, for example how you’re simulating the response times T and how you’re inducing right censoring.
 
 The code simulates data for three treatment modalities (CBT, CBT+MET, Peer Support) based on their success rates in cannabis addiction treatment. Using a binomial distribution, it generates binary relapse outcomes and random durations within a 6-month follow-up period. 
-
-The data is simulated 3 times for the 3 varying level of censoring rates: 10%, 30% and 60%.
+The data is simulated 3 times for the 3 different age groups, each having varying level of censoring rates.
 
 ```{r}
 # Dataset 1
@@ -104,56 +106,44 @@ data_3$Censored[censor_indices] <- 1
 ```{r}
 library(survival)
 # Plot Kaplan-Meier curves
-km_fit <- survfit(Surv(Time, Relapse) ~ 1, data = data_1 %>% 
-                    filter(Relapse == Censored))
+km_fit <- survfit(Surv(Time, Relapse) ~ 1, data = data_1 %>% filter(Relapse == Censored))
 
 data <- tibble(time=rep(km_fit$time, 3), surv=rep(km_fit$surv, 3), 
                psi_inverse_surv = c(log(-log(km_fit$surv)), 
-                                    qnorm(1-km_fit$surv), 
-                                    log((1-km_fit$surv)/km_fit$surv)), model = 
-                 rep(c("weibull", "lognormal", "loglogistic"), 
-                     each=length(km_fit$time)))
+                                    qnorm(1-km_fit$surv), log((1-km_fit$surv)/km_fit$surv)), model = 
+                 rep(c("weibull", "lognormal", "loglogistic"), each=length(km_fit$time)))
 
 data %>% ggplot(aes(x=log(time), y= psi_inverse_surv, color=model, 
                     group=model)) + geom_point() + 
   geom_smooth(formula = y ~ x, method = "lm") + facet_grid(~model)
 
 # Plot Kaplan-Meier curves
-km_fit <- survfit(Surv(Time, Relapse) ~ 1, data = data_2 %>% 
-                    filter(Relapse == Censored))
+km_fit <- survfit(Surv(Time, Relapse) ~ 1, data = data_2 %>% filter(Relapse == Censored))
 
 data <- tibble(time=rep(km_fit$time, 3), surv=rep(km_fit$surv, 3), 
                psi_inverse_surv = c(log(-log(km_fit$surv)), 
-                                    qnorm(1-km_fit$surv), 
-                                    log((1-km_fit$surv)/km_fit$surv)), model = 
-                 rep(c("weibull", "lognormal", "loglogistic"), 
-                     each=length(km_fit$time)))
+                                    qnorm(1-km_fit$surv), log((1-km_fit$surv)/km_fit$surv)), model = 
+                 rep(c("weibull", "lognormal", "loglogistic"), each=length(km_fit$time)))
 
 data %>% ggplot(aes(x=log(time), y= psi_inverse_surv, color=model, 
                     group=model)) + geom_point() + 
   geom_smooth(formula = y ~ x, method = "lm") + facet_grid(~model)
 
 # Plot Kaplan-Meier curves
-km_fit <- survfit(Surv(Time, Relapse) ~ 1, data = data_3 %>% 
-                    filter(Relapse == Censored))
+km_fit <- survfit(Surv(Time, Relapse) ~ 1, data = data_3 %>% filter(Relapse == Censored))
 
 data <- tibble(time=rep(km_fit$time, 3), surv=rep(km_fit$surv, 3), 
                psi_inverse_surv = c(log(-log(km_fit$surv)), 
-                                    qnorm(1-km_fit$surv), 
-                                    log((1-km_fit$surv)/km_fit$surv)), model = 
-                 rep(c("weibull", "lognormal", "loglogistic"), 
-                     each=length(km_fit$time)))
+                                    qnorm(1-km_fit$surv), log((1-km_fit$surv)/km_fit$surv)), model = 
+                 rep(c("weibull", "lognormal", "loglogistic"), each=length(km_fit$time)))
 
 data %>% ggplot(aes(x=log(time), y= psi_inverse_surv, color=model, 
                     group=model)) + geom_point() + 
   geom_smooth(formula = y ~ x, method = "lm") + facet_grid(~model)
 
-summary(survreg(Surv(Time, Relapse) ~ 1, data = data_1 %>% 
-                  filter(Relapse == Censored), dist = "lognormal"))
-summary(survreg(Surv(Time, Relapse) ~ 1, data = data_1 %>% 
-                  filter(Relapse == Censored), dist = "loglogistic"))
-summary(survreg(Surv(Time, Relapse) ~ 1, data = data_1 %>% 
-                  filter(Relapse == Censored), dist = "weibull"))
+summary(survreg(Surv(Time, Relapse) ~ 1, data = data_1 %>% filter(Relapse == Censored), dist = "lognormal"))
+summary(survreg(Surv(Time, Relapse) ~ 1, data = data_1 %>% filter(Relapse == Censored), dist = "loglogistic"))
+summary(survreg(Surv(Time, Relapse) ~ 1, data = data_1 %>% filter(Relapse == Censored), dist = "weibull"))
 
 ```
 
@@ -166,10 +156,8 @@ graph is closest to a straight line.
 ```{r}
 #Choosing between Null model and full model
 
-model_null <- survreg(Surv(Time, Relapse) ~ 1, data = data_1 %>% 
-                        filter(Relapse == Censored), dist = "lognormal")
-model_alt <- survreg(Surv(Time, Relapse) ~ Treatment, data = data_1 %>% 
-                       filter(Relapse == Censored), dist = "lognormal")
+model_null <- survreg(Surv(Time, Relapse) ~ 1, data = data_1 %>% filter(Relapse == Censored), dist = "lognormal")
+model_alt <- survreg(Surv(Time, Relapse) ~ Treatment, data = data_1 %>% filter(Relapse == Censored), dist = "lognormal")
 
 lrt_result <- anova(model_null, model_alt, test = "Chisq")
 print(lrt_result)
@@ -210,19 +198,12 @@ for (i in 1:length(datasets)) {
 
 ```
 
-
-
-## Discussion [300 words]
-
 ```{r}
 
 confidence_intervals_data <- list(
-  data_1 = matrix(c(1.8869010, 2.237165, 0.9332489, 1.469031, 1.2537109, 
-                    1.825049), ncol = 2, byrow = TRUE),
-  data_2 = matrix(c(1.776538, 2.133865, 1.098028, 1.650751, 1.429174, 
-                    2.028671), ncol = 2, byrow = TRUE),
-  data_3 = matrix(c(1.8919279, 2.272187, 0.9004007, 1.475396, 1.2689981, 
-                    1.883782), ncol = 2, byrow = TRUE)
+  data_1 = matrix(c(1.8869010, 2.237165, 0.9332489, 1.469031, 1.2537109, 1.825049), ncol = 2, byrow = TRUE),
+  data_2 = matrix(c(1.776538, 2.133865, 1.098028, 1.650751, 1.429174, 2.028671), ncol = 2, byrow = TRUE),
+  data_3 = matrix(c(1.8919279, 2.272187, 0.9004007, 1.475396, 1.2689981, 1.883782), ncol = 2, byrow = TRUE)
 )
 
 mean_widths <- sapply(confidence_intervals_data, function(x) mean(x[, 2] - x[, 1]))
@@ -247,39 +228,24 @@ ggplot(plot_data, aes(x = Dataset, y = Mean_Width)) +
 ```
 
 
-The data reflects the mean width of confidence intervals across three datasets with varying levels of censoring: 10%, 30%, and 60%, respectively. As the percentage of censoring increases from 10% in data_1 to 60% in data_3, there is a noticeable trend in the widening of the confidence intervals. Specifically, the mean width of the confidence intervals for data_1 is 0.4857947, which increases to 0.5031823 for data_2, and further to 0.5233461 for data_3. This pattern suggests that higher levels of censoring are associated with greater uncertainty in the parameter estimates. The widening of these intervals with increased censoring highlights the impact of missing or incomplete data on the precision of statistical estimates, underscoring the importance of considering the extent of censoring in survival analysis and similar studies.
 
-
+## Discussion [300 words]
+Comment on the results you obtained – do they make sense, are they surprising? If they are surprising what did you do to check that you didn’t make a mistake (sometimes, when you get surprising results, for example observing that the variance increases as the sample size increases, it’s because you made a mistake!)
 ```{r}
-fit.log <- survreg( Surv(Time, Relapse) ~ Treatment , data=data_1 %>% 
-                      filter(Relapse == Censored), dist="lognormal")
-print("Data with 10% Censoring")
-as.data.frame(summary(fit.log)$coefficients)
+fit.log <- survreg( Surv(Time, Relapse) ~ Treatment , data=data_1 %>% filter(Relapse == Censored), dist="lognormal")
+summary(fit.log)
 
-fit.log <- survreg( Surv(Time, Relapse) ~ Treatment , data=data_2 %>% 
-                      filter(Relapse == Censored), dist="lognormal")
-print("Data with 30% Censoring")
-as.data.frame(summary(fit.log)$coefficients)
+fit.log <- survreg( Surv(Time, Relapse) ~ Treatment , data=data_2 %>% filter(Relapse == Censored), dist="lognormal")
+summary(fit.log)
 
-fit.log <- survreg( Surv(Time, Relapse) ~ Treatment , data=data_3 %>% 
-                      filter(Relapse == Censored), dist="lognormal")
-print("Data with 60% Censoring")
-as.data.frame(summary(fit.log)$coefficients)
+fit.log <- survreg( Surv(Time, Relapse) ~ Treatment , data=data_3 %>% filter(Relapse == Censored), dist="lognormal")
+summary(fit.log)
 ```
-The provided summaries of the regression coefficients from three different fits of a lognormal model reveal a clear trend in the values of the coefficients as the level of censoring in the data changes. Initially, for the dataset with 10% censoring, the coefficients are higher, with the intercept at 5.131095, and the treatment effects for CBT+MET and Peer Support at 2.459605 and 1.711234, respectively. As the censoring level increases, there is a noticeable decrease in the magnitude of these coefficients. In the second summary, with 30% censoring, the intercept drops to 2.805904, and the treatment effects decrease to 1.599964 for CBT+MET and 1.960786 for Peer Support. In the final summary, with 60% censoring, the coefficients further decrease to 1.8212104 (Intercept), 0.9849759 (CBT+MET), and 1.3311621 (Peer Support).
 
-This trend illustrates a diminishing effect size with increasing levels of censoring. It suggests that as more data becomes censored, the estimated impact of the treatments on the outcome becomes less pronounced. This could be due to the loss of information as data points are censored, leading to more conservative estimates of the treatment effects. It indicates that the true effect of the treatments might be underestimated when a significant portion of the data is censored. This underscores the importance of accounting for censoring in the analysis and interpretation of treatment effects in survival and time-to-event studies.
-
-Overall, studies need to carefully address censoring to ensure the accuracy and reliability of their findings on treatment efficacy and to avoid underestimating the true effects of interventions.
 
 ## References
-Tracy, K., & Wallace, S. P. (2016). Benefits of peer support groups in the treatment of addiction. Substance Abuse and Rehabilitation, 7, 143–154. https://doi.org/10.2147/SAR.S81535
-
-Walther, L., Gantner, A., Heinz, A., & Majic, T. (2016). Evidence-based treatment options in cannabis dependency. Deutsches Ärzteblatt International, 113(39), 653–659. https://doi.org/10.3238/arztebl.2016.0653
-
-Hoch E, Noack R, Henker J, Pixa A, Höfler M, Behrendt S, Bühringer G, Wittchen HU. Efficacy of a targeted cognitive-behavioral treatment program for cannabis use disorders (CANDIS). Eur Neuropsychopharmacol. 2012 Apr;22(4):267-80. doi: 10.1016/j.euroneuro.2011.07.014. Epub 2011 Aug 24. PMID: 21865014.
 
 Generative AI - ChatGPT - Paraphrase and articulate the text for introduction
-of our study on treatment of cannabis addiction, refine the coefficients text in discussion.
+of our study on treatment of cannabis addiction.
 - Paraphrase and articulate the text for data generation
 of our study on treatment of cannabis addiction.
