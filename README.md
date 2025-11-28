@@ -1,15 +1,15 @@
-Efficacy of Different Treatment Modalities for Cannabis Addiction
+**Efficacy of Different Treatment Modalities for Cannabis Addiction**
 
 Simulation-Based Survival Analysis Study
 Authors: Kaartik Issar, Tanya Thaker
 
-Overview
+**Overview**
 
 This project investigates the effectiveness of three treatment modalities used in cannabis addiction therapy—Cognitive Behavioral Therapy (CBT), CBT combined with Motivational Enhancement Therapy (CBT+MET), and Peer Support—through a simulation-based survival analysis framework.
 
 Using published abstinence/relapse rates, we simulate time-to-event data (time to achieving six months of abstinence) under three different levels of censoring: 10%, 30%, and 60%. We then evaluate the performance of parametric survival models (Weibull, Lognormal, Log-logistic) and assess how censoring impacts:
 
-Model fit
+**Model fit**
 
 Estimation of treatment effects
 
@@ -19,7 +19,7 @@ Interpretation of treatment efficacy
 
 The project is implemented in R, using packages such as tidyverse, survival, and dplyr.
 
-Objectives
+**Objectives**
 
 Simulate realistic addiction-treatment time-to-event data with varying censoring rates.
 
@@ -31,7 +31,7 @@ Analyze the effect of censoring on statistical inference—particularly confiden
 
 Interpret the implications for real-world addiction-treatment studies.
 
-Methodology Summary
+**Methodology Summary**
 Data Generation
 
 Each treatment modality is simulated with sample size n = 500.
@@ -62,7 +62,7 @@ Likelihood Ratio Tests to compare null vs. treatment-augmented models
 
 Confidence interval analysis to evaluate precision under different censoring levels
 
-Key Findings
+**Key Findings**
 1. Best-Fit Model: Lognormal Distribution
 
 Across all censoring scenarios, lognormal survival models produced the straightest transformed Kaplan–Meier lines, indicating the strongest distributional fit.
@@ -94,7 +94,7 @@ Underestimation of true treatment effects
 
 The need for careful censoring-handling in addiction research
 
-Visualizations
+**Visualizations**
 
 The project includes:
 
