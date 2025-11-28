@@ -1,5 +1,5 @@
 ---
-title: "STA475 FREE CHOICE ACTIVITY"
+title: "Efficacy of different treatment modalities for cannabis addiction"
 author: "By Kaartik Issar and Tanya Thaker"
 output:
   pdf_document: default
