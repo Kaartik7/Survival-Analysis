@@ -1,1 +1,0 @@
-print("Survival analysis project")
